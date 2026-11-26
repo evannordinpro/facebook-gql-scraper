@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta, date
 from typing import Optional, Literal
 
 import requests
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 from . import __version__
 from .facebookConsolidater import consolidate_jsonl
@@ -27,6 +27,17 @@ from .facebookNoiseRemoval import remove_raw_facebook_json_noise
 from .facebookOperationDiscovery import FacebookOperationDiscovery
 
 logger = logging.getLogger(__name__)
+
+_ALLOWED_HOST_SUFFIXES = ("facebook.com", "fbcdn.net")
+
+
+def _require_facebook_url(url: str) -> None:
+    """Refuse any URL that is not HTTPS on Facebook or its CDN."""
+    parts = urlsplit(url)
+    host = (parts.hostname or "").lower()
+    allowed = any(host == s or host.endswith("." + s) for s in _ALLOWED_HOST_SUFFIXES)
+    if parts.scheme != "https" or not allowed:
+        raise ValueError(f"Refusing to fetch a non-Facebook URL: {parts.scheme}://{host}")
 
 
 class FacebookContext:
@@ -139,10 +150,11 @@ class FacebookContext:
                 f"Invalid JSON in cookies file: {self._cookies_file}"
             ) from e
 
-        cookies = {
-            c["name"]: c["value"] for c in raw_cookies if "name" in c and "value" in c
-        }
-        self.session.cookies.update(cookies)
+        # Scope every cookie to Facebook: a cookie set without a domain is sent
+        # by requests to every host, including redirect targets.
+        for c in raw_cookies:
+            if "name" in c and "value" in c:
+                self.session.cookies.set(c["name"], c["value"], domain=".facebook.com", path="/")
 
     def _load_state(self):
         """Attempt to load previously-saved state (operations + fb_dtsg)."""
@@ -368,6 +380,7 @@ class FacebookContext:
         :return: The HTTP response.
         :rtype: requests.Response
         """
+        _require_facebook_url(url)
         headers["accept"]="text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
         
         response = self.session.get(
