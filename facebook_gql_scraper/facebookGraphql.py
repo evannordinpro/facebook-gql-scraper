@@ -396,7 +396,7 @@ class FacebookContext:
         self.session.cookies.clear()
         self._load_cookies()
 
-    def get(self, url, headers={}):
+    def get(self, url, headers=None):
         """
         GET a Facebook HTML page as a browser navigation.
 
@@ -408,6 +408,7 @@ class FacebookContext:
         :rtype: requests.Response
         """
         _require_facebook_url(url)
+        headers = dict(headers or {})
         headers["accept"]="text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
         
         response = self.session.get(
