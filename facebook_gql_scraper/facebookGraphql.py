@@ -204,9 +204,11 @@ class FacebookContext:
             self.csrf_token = state.get("fb_dtsg")
 
     def _save_state(self):
-        """Persist operation doc-ids and the dtsg token to disk."""
+        """Persist operation doc-ids and the dtsg token to disk, readable by the owner only."""
 
-        with open(self._state_file, "w", encoding="utf-8") as f:
+        fd = os.open(self._state_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        os.chmod(self._state_file, 0o600)  # the mode above applies only to a new file
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             state = {
                 "version": __version__,
                 "operations": self.operations,
