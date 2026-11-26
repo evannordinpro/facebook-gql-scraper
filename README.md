@@ -350,6 +350,7 @@ group.creation_time     # 1456789012
 group.description       # "Memes for the working class."
 group.privacy_info      # "Public"
 group.discoverability_info # "Visible"
+group.locations         # [{"id": "110843418940484", "name": "Seattle, Washington"}], [] if unset
 ```
 
 ### Group methods

@@ -892,6 +892,7 @@ def parse_group_about_info(data) -> ParserGroup:
     description = None
     privacy_info = None
     discoverability_info = None
+    locations = []
 
     for unit in feed_units:
         typename = unit.get("__typename")
@@ -914,6 +915,12 @@ def parse_group_about_info(data) -> ParserGroup:
                     privacy_info = item_group.get("privacy_info").get("label").get("text")
                 elif item_type == "XFBDiscoverabilityGroupsAboutInfoItem":
                     discoverability_info = item_group.get("discoverability_info").get("label").get("text")
+                elif item_type == "XFBLocationGroupsAboutInfoItem":
+                    locations = [
+                        ParserGroupLocation(id=loc.get("id"), name=loc.get("name"))
+                        for loc in item_group.get("group_locations") or []
+                        if isinstance(loc, dict) and loc.get("name")
+                    ]
 
         # Member count via formatted_count_text
         elif typename == "GroupsAboutFeedMembersCardUnit":
@@ -930,6 +937,7 @@ def parse_group_about_info(data) -> ParserGroup:
         description=description,
         privacy_info=privacy_info,
         discoverability_info=discoverability_info,
+        locations=locations,
     )
 
 

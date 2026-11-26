@@ -2519,6 +2519,7 @@ class Group(FacebookModel):
             "description": about.description if about else None,
             "privacy_info": about.privacy_info if about else None,
             "discoverability_info": about.discoverability_info if about else None,
+            "locations": [loc.model_dump() for loc in about.locations] if about else [],
         })
         self._full_fetched = True
 
@@ -2615,6 +2616,17 @@ class Group(FacebookModel):
         :rtype: str or None
         """
         return self._field("discoverability_info")
+
+    @property
+    def locations(self) -> list[dict]:
+        """
+        Places the group's admins set in its About page, e.g.
+        ``[{"id": "110843418940484", "name": "Seattle, Washington"}]``. Empty when none are set.
+
+        :return: Group locations.
+        :rtype: list[dict]
+        """
+        return self._field("locations") or []
 
     def get_posts(self) -> PaginatedIterator[PostBase]:
         """

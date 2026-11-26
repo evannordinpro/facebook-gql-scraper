@@ -87,6 +87,11 @@ class ParserProfileRef(_Base):
 
 # ---------- group ----------
 
+class ParserGroupLocation(_Base):
+    id: Optional[str] = None  # Facebook place id
+    name: Optional[str] = None  # "Seattle, Washington"
+
+
 class ParserGroup(_Base):
     type: Literal["group"] = "group"
     id: Optional[str] = None
@@ -98,6 +103,7 @@ class ParserGroup(_Base):
     description: Optional[str] = None
     privacy_info: Optional[str] = None
     discoverability_info: Optional[str] = None
+    locations: List[ParserGroupLocation] = Field(default_factory=list)
     sample_members: List[ParserProfileRef] = Field(default_factory=list)
 
 
