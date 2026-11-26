@@ -186,9 +186,18 @@ class ParserMediaPost(ParserPostBase):
     nextMediaAfterNodeId: Optional[str] = None
     parent_post_id: Optional[str] = None
     
+class ParserSharedPost(_Base):
+    """The post a share points to (its attached_story)."""
+    id: Optional[str] = None
+    url: Optional[str] = None
+    text: Optional[str] = None
+    author: Optional[ParserProfileRef] = None
+    media_posts_count: Optional[int] = None
+
 class ParserPost(ParserPostBase):
     type: Literal["post"] = "post"
     title: Optional[str] = None
+    shared_post: Optional[ParserSharedPost] = None
     media_posts_count: Optional[int] = None
     media_posts: List[ParserMediaPost] = Field(default_factory=list)
     attachments: List[Union[ParserGenericMedia, ParserExternalLink, ParserAnimatedImage, ParserStickerMedia]] = Field(default_factory=list)

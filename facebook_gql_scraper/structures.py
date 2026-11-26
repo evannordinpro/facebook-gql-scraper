@@ -957,6 +957,17 @@ class Post(PostBase):
         return self._field("title")
 
     @property
+    def shared_post(self) -> Optional[dict]:
+        """
+        The post this post shares, or ``None`` when it shares none:
+        ``{"id", "url", "text", "author": {"id", "name", "url"}, "media_posts_count"}``.
+        A share with no words of its own has no ``text``: its words are here.
+
+        :rtype: dict or None
+        """
+        return self._field("shared_post")
+
+    @property
     def attachments(
         self,
     ) -> list[Photo | Video | AnimatedImage | ExternalLink | Sticker]:

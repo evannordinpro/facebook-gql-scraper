@@ -271,6 +271,26 @@ def _get_comments_count(node):
     )
 
 
+def _parse_attached_story(story: dict) -> Optional[ParserSharedPost]:
+    """The post a share points to. A share with no words of its own has a null message and
+    no attachments: its text and photos are all in the shared post."""
+    shared = (story or {}).get("attached_story")
+    if not isinstance(shared, dict):
+        return None
+    actor = (shared.get("actors") or [{}])[0] or {}
+    _, _, media_count = _parse_post_attachments(shared.get("attachments") or [])
+    text = (shared.get("message") or {}).get("text")
+    if not (shared.get("post_id") or text or media_count):
+        return None
+    return ParserSharedPost(
+        id=shared.get("post_id"),
+        url=shared.get("wwwURL"),
+        text=text,
+        author=ParserProfileRef(id=actor.get("id"), name=actor.get("name"), url=actor.get("url")),
+        media_posts_count=media_count,
+    )
+
+
 # ---------- feed post -> list[ParserFeedPost] ----------
 
 def _parse_feed_post(edge) -> list[ParserFeedPost]:
@@ -342,6 +362,7 @@ def _parse_feed_post(edge) -> list[ParserFeedPost]:
             ),
             title=title_text,
             text=text,
+            shared_post=_parse_attached_story(comet_story),
             attachments=non_media_post,
             reaction_count=reactions["total"],
             reactors_visible=(reaction_display_strategy == "NONE") if reaction_display_strategy else None,
@@ -633,6 +654,7 @@ def parse_post(data) -> ParserPost:
         ),
         title=title_text,
         text=text,
+        shared_post=_parse_attached_story(comet_story),
         attachments=non_media_post,
         reaction_count=reactions["total"],
         reactors_visible=(reaction_display_strategy == "NONE") if reaction_display_strategy else None,

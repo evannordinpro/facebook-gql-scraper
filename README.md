@@ -214,6 +214,7 @@ post.creation_time          # 1690761224
 post.url                    # "https://web.facebook.com/Ishowspeed/posts/pfbid..."
 post.title                  # None
 post.text                   # "Thank you for all the prayers <3"
+post.shared_post            # None, or the post a share points to: {"id", "url", "text", "author", "media_posts_count"}
 
 ## Engagement
 post.reaction_count         # 47619
