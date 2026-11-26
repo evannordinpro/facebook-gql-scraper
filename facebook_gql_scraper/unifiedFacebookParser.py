@@ -319,7 +319,9 @@ def _parse_feed_post(edge) -> list[ParserFeedPost]:
     for mp in media_posts:
         mp.parent_post_id = post_id
         
-    if shareable_typename != "Story":
+    # Only a feed item that is itself media is returned as its media. Private groups send
+    # shareable_from_perspective_of_feed_ufi as null: those are posts like "Story".
+    if shareable_typename in ("Photo", "Video", "Album"):
         return media_posts
 
 
