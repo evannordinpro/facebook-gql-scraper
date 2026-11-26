@@ -40,6 +40,30 @@ def _require_facebook_url(url: str) -> None:
         raise ValueError(f"Refusing to fetch a non-Facebook URL: {parts.scheme}://{host}")
 
 
+_REDACTED = "[REDACTED]"
+_SECRET_HEADERS = ("cookie", "set-cookie")
+_SECRET_FORM_FIELD = re.compile(r"(^|&)(fb_dtsg|lsd)=[^&]*")
+
+
+def _redact_headers(headers) -> dict:
+    """Headers for a debug dump, with cookie headers masked."""
+    return {k: (_REDACTED if k.lower() in _SECRET_HEADERS else v) for k, v in dict(headers).items()}
+
+
+def _redact_cookies(jar) -> dict:
+    """Cookie names for a debug dump, with every value masked."""
+    return {name: _REDACTED for name in jar.get_dict()}
+
+
+def _redact_body(body):
+    """A request body for a debug dump, with the fb_dtsg and lsd tokens masked."""
+    if not body:
+        return None
+    if isinstance(body, bytes):
+        body = body.decode("utf-8", errors="replace")
+    return _SECRET_FORM_FIELD.sub(lambda m: f"{m.group(1)}{m.group(2)}={_REDACTED}", body)
+
+
 class FacebookContext:
     """
     Facebook request context.
@@ -581,15 +605,15 @@ class FacebookContext:
                 "request": {
                     "url": response.request.url,
                     "method": response.request.method,
-                    "headers": dict(response.request.headers),
-                    "cookies": self.session.cookies.get_dict(),
-                    "body": response.request.body if response.request.body else None,
+                    "headers": _redact_headers(response.request.headers),
+                    "cookies": _redact_cookies(self.session.cookies),
+                    "body": _redact_body(response.request.body),
                 },
                 "response": {
                     "status_code": response.status_code,
                     "reason": response.reason,
                     "url": response.url,
-                    "headers": dict(response.headers),
+                    "headers": _redact_headers(response.headers),
                     "body": response.text
                 },
             }
@@ -656,16 +680,16 @@ class FacebookContext:
             "request": {
                 "url": response.request.url,
                 "method": response.request.method,
-                "headers": dict(response.request.headers),
-                "cookies": self.session.cookies.get_dict(),
-                "body": response.request.body if response.request.body else None,
+                "headers": _redact_headers(response.request.headers),
+                "cookies": _redact_cookies(self.session.cookies),
+                "body": _redact_body(response.request.body),
                 "variables": variables,
             },
             "response": {
                 "status_code": response.status_code,
                 "reason": response.reason,
                 "url": response.url,
-                "headers": dict(response.headers),
+                "headers": _redact_headers(response.headers),
                 "parsed": parsed,
             },
         }
