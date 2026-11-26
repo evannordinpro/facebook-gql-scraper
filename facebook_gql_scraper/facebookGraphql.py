@@ -112,7 +112,8 @@ class FacebookContext:
                     "https": proxy,
                 }
             )
-            self.session.verify = False
+            # TLS verification stays on. For an intercepting proxy, trust its CA
+            # through REQUESTS_CA_BUNDLE instead of turning checks off.
 
         self._cookies_file = cookies_file
         self._state_file = state_file
